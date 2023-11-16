@@ -121,10 +121,10 @@ int SftpClient::connectToServer(char *serverName, int port, char *user)
     ssh_options_set(ssh_client_session, SSH_OPTIONS_USER, user);
     ret = ssh_connect(ssh_client_session);
     if(ret != SSH_OK) {
-        qDebug() << "Error: connecting to local host:" << ssh_get_error(ssh_client_session);
+        qDebug() << "Error: connecting to:" << serverName << ssh_get_error(ssh_client_session);
         return ret;
     } else {
-        qDebug() << "Connected to localhost";
+        qDebug() << "Connected to: " << serverName;
         sshClientStatus = SSH_CLIENT_STATUS_CONNECTED;
         emit sftpClientStatus(sshClientStatus);
     }

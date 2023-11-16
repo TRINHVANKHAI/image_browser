@@ -50,9 +50,14 @@ ImageBrowser::~ImageBrowser()
     qDebug() << "~ImageBrowser()";
 }
 
-int ImageBrowser::listRemoteDir(const char *dirname)
+int ImageBrowser::listChangeRemoteDir(const char *dirname)
 {
-
+    QListWidgetItem *headItem = new QListWidgetItem(ui->listWidget_FileList);
+    FileDirectoryListItem *headFileDirItem = new FileDirectoryListItem(this);
+    headItem->setSizeHint(headFileDirItem->size());
+    ui->listWidget_FileList->addItem(headItem);
+    ui->listWidget_FileList->setItemWidget(headItem, headFileDirItem);
+    pSftp->sftpChangeListDir(dirname);
 }
 
 void ImageBrowser::on_sftpStatusChanged(enum ssh_ClientStatus stat)
@@ -109,11 +114,6 @@ void ImageBrowser::on_sftpRequestDownloadFileStatus(QString fileName, int status
 void ImageBrowser::on_pushButtonRefresh_clicked()
 {
     ui->listWidget_FileList->clear();
-    QListWidgetItem *headItem = new QListWidgetItem(ui->listWidget_FileList);
-    FileDirectoryListItem *headFileDirItem = new FileDirectoryListItem(this);
-    headItem->setSizeHint(headFileDirItem->size());
-    ui->listWidget_FileList->addItem(headItem);
-    ui->listWidget_FileList->setItemWidget(headItem, headFileDirItem);
-    pSftp->sftpChangeListDir("/tmp/Image");
+    this->listChangeRemoteDir("/tmp/Image");
 }
 

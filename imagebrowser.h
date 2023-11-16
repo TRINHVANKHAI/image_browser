@@ -17,7 +17,7 @@ class ImageBrowser : public QMainWindow
 public:
     ImageBrowser(QWidget *parent = nullptr);
     ~ImageBrowser();
-    int listRemoteDir(const char *dirname);
+    int listChangeRemoteDir(const char *dirname);
     SftpClient *pSftp;
     LoginWindow *pLoginWindow;
 signals:
