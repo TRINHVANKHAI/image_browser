@@ -122,6 +122,8 @@ int SftpClient::connectToServer(char *serverName, int port, char *user)
     ret = ssh_connect(ssh_client_session);
     if(ret != SSH_OK) {
         qDebug() << "Error: connecting to:" << serverName << ssh_get_error(ssh_client_session);
+        sshClientStatus = SSH_CLIENT_STATUS_ERR_CONNECTION;
+        emit sftpClientStatus(sshClientStatus);
         return ret;
     } else {
         qDebug() << "Connected to: " << serverName;
@@ -133,7 +135,11 @@ int SftpClient::connectToServer(char *serverName, int port, char *user)
     if(ret == 0) {
         sshClientStatus = SSH_CLIENT_STATUS_HOST_VERIFIED;
         emit sftpClientStatus(sshClientStatus);
+    } else {
+        sshClientStatus = SSH_CLIENT_STATUS_ERR_KNOWNHOST;
+        emit sftpClientStatus(sshClientStatus);
     }
+
     return ret;
 }
 
@@ -151,6 +157,8 @@ int SftpClient::loginAuthPassword(char *pass)
     {
         fprintf(stderr, "Error authenticating with password: %s\n",
                 ssh_get_error(ssh_client_session));
+        sshClientStatus = SSH_CLIENT_STATUS_ERR_AUTHENTICATION;
+        emit sftpClientStatus(sshClientStatus);
     } else {
         sshClientStatus = SSH_CLIENT_STATUS_AUTHENTICATED;
         emit sftpClientStatus(sshClientStatus);

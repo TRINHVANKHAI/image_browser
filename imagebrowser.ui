@@ -98,7 +98,7 @@
     <property name="title">
      <string>Menu</string>
     </property>
-    <addaction name="actionLogin"/>
+    <addaction name="actionSettings"/>
     <addaction name="actionClose"/>
    </widget>
    <addaction name="menuLogin"/>
@@ -112,6 +112,11 @@
   <action name="actionClose">
    <property name="text">
     <string>Close</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
    </property>
   </action>
  </widget>

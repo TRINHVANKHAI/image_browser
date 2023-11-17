@@ -12,8 +12,14 @@ ImageBrowser::ImageBrowser(QWidget *parent)
     pSftp = new SftpClient();
     pLoginWindow = new LoginWindow(this);
     pLoginWindow->setWindowTitle("ログイン");
+    pSettingMenu = new SettingMenu(this);
+    pSettingMenu->setWindowTitle("ユザー設定");
+
     connect(pLoginWindow, SIGNAL(loginConnectToServer(char*,int,char*)), pSftp, SLOT(connectToServer(char*,int,char*)));
     connect(pLoginWindow, SIGNAL(loginAuthUserPassword(char*)), pSftp, SLOT(loginAuthPassword(char*)));
+
+    connect(pSettingMenu, SIGNAL(localDownloadDirChanged(QString)),
+            this, SLOT(on_LocalDownloadDirChanged(QString)));
 
     connect(this, SIGNAL(sftpRequestDownloadFile(QString,QString)),
             pSftp, SLOT(onFileDownloadRequested(QString,QString)));
@@ -35,7 +41,7 @@ ImageBrowser::ImageBrowser(QWidget *parent)
     ui->listWidget_FileList->setItemWidget(headItem, headFileDirItem);
 
 
-
+    pSettingMenu->loadSettings();
     pLoginWindow->show();
     pLoginWindow->raise();
     pLoginWindow->activateWindow();
@@ -94,8 +100,7 @@ void ImageBrowser::on_pushButtonDownLoad_clicked()
 {
     ui->pushButtonDownLoad->setEnabled(false);
     QString filePathToDownload = ui->lineEditFilePath->text();
-    QString localDir = "C:/Users/khai/Downloads";
-    emit this->sftpRequestDownloadFile(filePathToDownload, localDir);
+    emit this->sftpRequestDownloadFile(filePathToDownload, localDownloadDir);
 }
 
 void ImageBrowser::on_sftpRequestDownloadFileStatus(QString fileName, int status)
@@ -116,4 +121,30 @@ void ImageBrowser::on_pushButtonRefresh_clicked()
     ui->listWidget_FileList->clear();
     this->listChangeRemoteDir("/tmp/Image");
 }
+
+void ImageBrowser::on_LocalDownloadDirChanged(QString dir)
+{
+    this->localDownloadDir = dir;
+    qDebug() << "ImageBrowser::on_LocalDownloadDirChanged = " << this->localDownloadDir;
+}
+
+void ImageBrowser::on_actionLogin_triggered()
+{
+
+}
+
+void ImageBrowser::on_actionClose_triggered()
+{
+    this->close();
+}
+
+void ImageBrowser::on_actionSettings_triggered()
+{
+
+    this->pSettingMenu->show();
+    this->pSettingMenu->raise();
+    this->pSettingMenu->isActiveWindow();
+}
+
+
 

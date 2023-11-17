@@ -13,18 +13,21 @@ SOURCES += \
     loginwindow.cpp \
     main.cpp \
     imagebrowser.cpp \
+    settingmenu.cpp \
     sftpclient.cpp
 
 HEADERS += \
     filedirectorylistitem.h \
     imagebrowser.h \
     loginwindow.h \
+    settingmenu.h \
     sftpclient.h
 
 FORMS += \
     filedirectorylistitem.ui \
     imagebrowser.ui \
-    loginwindow.ui
+    loginwindow.ui \
+    settingmenu.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
