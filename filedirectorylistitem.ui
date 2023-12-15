@@ -68,6 +68,12 @@
      <height>50</height>
     </size>
    </property>
+   <property name="font">
+    <font>
+     <family>Segoe UI</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
    <property name="text">
     <string>Size</string>
    </property>
@@ -90,6 +96,12 @@
      <height>50</height>
     </size>
    </property>
+   <property name="font">
+    <font>
+     <family>Segoe UI</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
    <property name="text">
     <string>Name</string>
    </property>
@@ -108,6 +120,12 @@
      <width>16777215</width>
      <height>50</height>
     </size>
+   </property>
+   <property name="font">
+    <font>
+     <family>Segoe UI</family>
+     <pointsize>12</pointsize>
+    </font>
    </property>
    <property name="text">
     <string>Changed</string>

@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QDateTime>
 
-FileDirectoryListItem::FileDirectoryListItem(QString filename, ssize_t size, uint64_t mtime, QWidget *parent) :
+FileDirectoryListItem::FileDirectoryListItem(QString filename, QString size, QString mtime, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::FileDirectoryListItem)
 {
@@ -13,8 +13,8 @@ FileDirectoryListItem::FileDirectoryListItem(QString filename, ssize_t size, uin
     itemFileSize = size;
     itemFileMtime = mtime;
     ui->labelFileDirName->setText(filename);
-    ui->labelFileDirSize->setText(QString::number(size/1024)+QString(" KB"));
-    ui->labelFileDirTimeStamp->setText(QDateTime::fromSecsSinceEpoch(mtime).toString("yyyy/MM/dd hh:mm"));
+    ui->labelFileDirSize->setText(size);
+    ui->labelFileDirTimeStamp->setText(mtime);
 }
 
 FileDirectoryListItem::FileDirectoryListItem(QWidget *parent) :

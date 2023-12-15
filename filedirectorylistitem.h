@@ -13,12 +13,12 @@ class FileDirectoryListItem : public QWidget
     Q_OBJECT
 
 public:
-    explicit FileDirectoryListItem(QString filename, ssize_t size, uint64_t mtime, QWidget *parent = nullptr);
+    explicit FileDirectoryListItem(QString filename, QString size, QString mtime, QWidget *parent = nullptr);
     explicit FileDirectoryListItem(QWidget *parent);
     ~FileDirectoryListItem();
     QString itemFileName;
-    ssize_t itemFileSize;
-    uint64_t itemFileMtime;
+    QString itemFileSize;
+    QString itemFileMtime;
 private:
     Ui::FileDirectoryListItem *ui;
 };

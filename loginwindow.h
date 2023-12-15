@@ -1,6 +1,6 @@
 #ifndef LOGINWINDOW_H
 #define LOGINWINDOW_H
-
+#include "sftpclient.h"
 #include <QDialog>
 
 namespace Ui {
@@ -15,14 +15,16 @@ public:
     explicit LoginWindow(QWidget *parent = nullptr);
     ~LoginWindow();
 
+public slots:
+    void on_sftpClientStatus(enum ssh_ClientStatus stat);
+
 private slots:
     void on_pushButtonLogin_clicked();
     void on_pushButtonCancel_clicked();
     void on_spinBoxPort_valueChanged(int arg1);
 
 signals:
-    int loginConnectToServer(char *server, int port, char *user);
-    int loginAuthUserPassword(char *pass);
+    int loginConnectToServer(char *server, int port, char *user, char *pass);
 
 private:
     int ssh_client_port;

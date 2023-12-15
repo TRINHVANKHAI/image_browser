@@ -1,28 +1,17 @@
 #include "sftpclient.h"
 #include <QDebug>
+#include <QDateTime>
 
-SftpClient::SftpClient(QObject *parent)
-    : QObject{parent}
+SftpClient::SftpClient(QObject *parent) :
+    QThread(parent)
 {
-    ssh_client_session = ssh_new();
-    if(ssh_client_session==NULL) {
-        qDebug() << "Error: open session error";
-    }
+
 }
 
 SftpClient::~SftpClient()
 {
     qDebug() << "~SftpClient()";
-
-    if(sftp_client_session) {
-        sftp_free(sftp_client_session);
-        sftp_client_session = NULL;
-    }
-    this->disconnectFromServer();
-    if(ssh_client_session) {
-        ssh_free(ssh_client_session);
-        ssh_client_session = NULL;
-    }
+    this->disconnectFromSftpServer();
 }
 
 int SftpClient::verifyKnownHost()
@@ -62,8 +51,12 @@ int SftpClient::verifyKnownHost()
         ssh_print_hexa("Public key hash", hash, hlen);
         fprintf(stderr, "For security reasons, connection will be stopped\n");
         ssh_clean_pubkey_hash(&hash);
-
-        return -1;
+        rc = ssh_session_update_known_hosts(ssh_client_session);
+        if (rc < 0) {
+            fprintf(stderr, "Error %s\n", strerror(errno));
+            return -1;
+        }
+        break;
     case SSH_KNOWN_HOSTS_OTHER:
         fprintf(stderr, "The host key for this server was not found but an other"
                         "type of key exists.\n");
@@ -96,6 +89,7 @@ int SftpClient::verifyKnownHost()
             return -1;
         }
 #endif
+        /*Update known host anyway*/
         rc = ssh_session_update_known_hosts(ssh_client_session);
         if (rc < 0) {
             fprintf(stderr, "Error %s\n", strerror(errno));
@@ -108,22 +102,31 @@ int SftpClient::verifyKnownHost()
         ssh_clean_pubkey_hash(&hash);
         return -1;
     }
-
     ssh_clean_pubkey_hash(&hash);
     return 0;
 }
 
-int SftpClient::connectToServer(char *serverName, int port, char *user)
+int SftpClient::connectToSftpServer(char *serverName, int port, char *user, char *pass)
 {
     int ret;
+    ssh_client_session = ssh_new();
+    if(ssh_client_session==NULL) {
+        qDebug() << "Error: open session error";
+    }
+    int timeout_sec = 5;
+    ssh_options_set(ssh_client_session, SSH_OPTIONS_TIMEOUT, &timeout_sec);
+    qDebug() << "Connecting to: " << serverName << ":" << port;
     ssh_options_set(ssh_client_session, SSH_OPTIONS_HOST, serverName);
     ssh_options_set(ssh_client_session, SSH_OPTIONS_PORT, &port);
-    ssh_options_set(ssh_client_session, SSH_OPTIONS_USER, user);
+
     ret = ssh_connect(ssh_client_session);
     if(ret != SSH_OK) {
-        qDebug() << "Error: connecting to:" << serverName << ssh_get_error(ssh_client_session);
+        qDebug() << "Error: connecting to:" << serverName << ":" << port << ssh_get_error(ssh_client_session);
         sshClientStatus = SSH_CLIENT_STATUS_ERR_CONNECTION;
         emit sftpClientStatus(sshClientStatus);
+        ssh_disconnect(ssh_client_session);
+        ssh_free(ssh_client_session);
+        ssh_client_session = NULL;
         return ret;
     } else {
         qDebug() << "Connected to: " << serverName;
@@ -138,35 +141,41 @@ int SftpClient::connectToServer(char *serverName, int port, char *user)
     } else {
         sshClientStatus = SSH_CLIENT_STATUS_ERR_KNOWNHOST;
         emit sftpClientStatus(sshClientStatus);
+
     }
 
-    return ret;
-}
-
-void SftpClient::disconnectFromServer() {
-    ssh_disconnect(ssh_client_session);
-    sshClientStatus = SSH_CLIENT_STATUS_DISCONNECTED;
-    emit sftpClientStatus(sshClientStatus);
-}
-
-int SftpClient::loginAuthPassword(char *pass)
-{
-    int rc;
-    rc = ssh_userauth_password(ssh_client_session, NULL, pass);
-    if (rc != SSH_AUTH_SUCCESS)
+    ret = ssh_userauth_password(ssh_client_session, user, pass);
+    if (ret != SSH_AUTH_SUCCESS)
     {
         fprintf(stderr, "Error authenticating with password: %s\n",
                 ssh_get_error(ssh_client_session));
         sshClientStatus = SSH_CLIENT_STATUS_ERR_AUTHENTICATION;
         emit sftpClientStatus(sshClientStatus);
+        ssh_disconnect(ssh_client_session);
+        ssh_free(ssh_client_session);
+        ssh_client_session = NULL;
+        return ret;
     } else {
         sshClientStatus = SSH_CLIENT_STATUS_AUTHENTICATED;
         emit sftpClientStatus(sshClientStatus);
     }
-    return rc;
+
+    ret = sftpClientSessionInit();
+    return ret;
 }
 
-void SftpClient::sftpClientSessionInit()
+void SftpClient::disconnectFromSftpServer() {
+    if(sshClientStatus == SSH_CLIENT_STATUS_SFTP_ESTABLISHED) {
+        sftpClientSessionDestroy();
+        ssh_disconnect(ssh_client_session);
+        ssh_free(ssh_client_session);
+        ssh_client_session = NULL;
+    }
+    sshClientStatus = SSH_CLIENT_STATUS_DISCONNECTED;
+    emit sftpClientStatus(sshClientStatus);
+}
+
+int SftpClient::sftpClientSessionInit()
 {
     if(sshClientStatus == SSH_CLIENT_STATUS_AUTHENTICATED) {
         qDebug() << "SFTP create session ";
@@ -177,6 +186,7 @@ void SftpClient::sftpClientSessionInit()
                     ssh_get_error(ssh_client_session));
             sftp_client_session = NULL;
             qDebug() << "Error: SFTP create session failed";
+            return -1;
         }
         qDebug() << "SFTP init session ";
         if(sftp_init(sftp_client_session) != SSH_OK) {
@@ -185,19 +195,28 @@ void SftpClient::sftpClientSessionInit()
             sftp_free(sftp_client_session);
             sftp_client_session = NULL;
             qDebug() << "ERR: SFTP free session ";
+            return -2;
         } else {
             sshClientStatus = SSH_CLIENT_STATUS_SFTP_ESTABLISHED;
             emit sftpClientStatus(sshClientStatus);
             qDebug() << "SSH_CLIENT_STATUS_SFTP_ESTABLISHED ";
+            return 0;
         }
 
     }
+    return 0;
+}
+
+void SftpClient::sftpClientSessionDestroy() {
+    sftp_free(sftp_client_session);
+    sftp_client_session = NULL;
 }
 
 int SftpClient::sftpChangeListDir(const char *dirname)
 {
   sftp_dir dir;
   sftp_attributes attributes;
+  QStringList fileList;
   int rc;
   if((sftp_client_session == NULL) ||
           (sshClientStatus != SSH_CLIENT_STATUS_SFTP_ESTABLISHED)) {
@@ -216,11 +235,16 @@ int SftpClient::sftpChangeListDir(const char *dirname)
   while ((attributes = sftp_readdir(sftp_client_session, dir)) != NULL)
   {
       if(attributes->type == 1) {
-          QString filename = QString::fromUtf8(attributes->name);
-          emit sftpClientListFileResponse(filename, attributes->size, attributes->mtime);
+          QString filenamepro = QString::fromUtf8(attributes->name) + QString(",")
+                           + QString::number(attributes->size/1024) +QString(" KB") + QString(",")
+                           + QDateTime::fromSecsSinceEpoch(attributes->mtime).toString("yyyy/MM/dd hh:mm");
+
+          fileList.append(filenamepro);
           sftp_attributes_free(attributes);
       }
   }
+  fileList.sort();
+  emit sftpClientListFileResponse(fileList);
 
   if (!sftp_dir_eof(dir))
   {
@@ -283,28 +307,41 @@ int SftpClient::fileDownLoadSync(QString fileName, QString localDir)
 
       fwrite(buffer, nbytes, 1, downloadedFile);
   }
-  qDebug() << "Fclose file afterdownload";
+
   fclose(downloadedFile);
   rc = sftp_close(file);
 
-  qDebug() << "sftp_close file afterdownload";
   if (rc != SSH_OK) {
       fprintf(stderr, "Can't close the read file: %s\n",
               ssh_get_error(ssh_client_session));
       return rc;
   }
-  qDebug() << "return file afterdownload";
   return SSH_OK;
 }
 
-void SftpClient::onFileDownloadRequested(QString fileName, QString localDir)
+int SftpClient::downloadSelectedFile(QString fileName, QString localDir)
 {
-
-    qDebug() << "File requested to download: " << fileName;
-
     if(this->fileDownLoadSync(fileName, localDir) == SSH_OK) {
-        emit this->requestedFileDownloadStatus(fileName, 1);
+        return 0;
     } else {
-        emit this->requestedFileDownloadStatus(fileName, 0);
+        return -1;
+    }
+}
+
+int SftpClient::deleteSelectedFile(QString fileName)
+{
+    QString filePath = sftpCurDir + "/" + fileName;
+    if(sftp_unlink(sftp_client_session, filePath.toLocal8Bit().data()) == SSH_OK) {
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+void SftpClient::onKeepAliveEvent()
+{
+    if((sshClientStatus == SSH_CLIENT_STATUS_SFTP_ESTABLISHED)&&
+            (ssh_client_session!=NULL)) {
+        ssh_send_ignore(ssh_client_session, "ignore");
     }
 }

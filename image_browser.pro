@@ -7,8 +7,10 @@ CONFIG += c++17
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+RC_ICONS = image_browser.ico
 
 SOURCES += \
+    dialog.cpp \
     filedirectorylistitem.cpp \
     loginwindow.cpp \
     main.cpp \
@@ -17,6 +19,7 @@ SOURCES += \
     sftpclient.cpp
 
 HEADERS += \
+    dialog.h \
     filedirectorylistitem.h \
     imagebrowser.h \
     loginwindow.h \
@@ -24,6 +27,7 @@ HEADERS += \
     sftpclient.h
 
 FORMS += \
+    dialog.ui \
     filedirectorylistitem.ui \
     imagebrowser.ui \
     loginwindow.ui \

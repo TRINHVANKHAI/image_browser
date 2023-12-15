@@ -7,6 +7,7 @@
 #include "loginwindow.h"
 #include "settingmenu.h"
 
+#define REMOTE_IMAGE_DIR "/opt/exposure_control/Images"
 QT_BEGIN_NAMESPACE
 namespace Ui { class ImageBrowser; }
 QT_END_NAMESPACE
@@ -23,12 +24,15 @@ public:
     LoginWindow *pLoginWindow;
     SettingMenu *pSettingMenu;
 signals:
-    void sftpRequestDownloadFile(QString filename, QString localDir);
+    void disconectFromSftpServer();
+
 public slots:
     void on_sftpStatusChanged(enum ssh_ClientStatus stat);
-    void on_sftpClientListFileResponse(QString filename, ssize_t size, uint64_t mtime);
-    void on_sftpRequestDownloadFileStatus(QString filename, int status);
+    void on_sftpClientListFileResponse(QStringList filename);
     void on_LocalDownloadDirChanged(QString dir);
+    void on_actionDeleteAccepted();
+    void on_actionDeleteAllAccepted();
+
 private slots:
     void onFileItemClicked(QListWidgetItem* item);
     void on_pushButtonDownLoad_clicked();
@@ -41,8 +45,13 @@ private slots:
 
     void on_actionLogin_triggered();
 
+    void on_actionDelete_triggered();
+
+    void on_actionDelete_All_triggered();
+
 private:
     QString localDownloadDir;
+    QStringList sftpFileList;
     Ui::ImageBrowser *ui;
 };
 #endif // IMAGEBROWSER_H
