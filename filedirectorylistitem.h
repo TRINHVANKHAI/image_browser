@@ -16,10 +16,14 @@ public:
     explicit FileDirectoryListItem(QString filename, QString size, QString mtime, QWidget *parent = nullptr);
     explicit FileDirectoryListItem(QWidget *parent);
     ~FileDirectoryListItem();
+    QString getFileName();
+    QString getFileSize();
+    QString getFileMTime();
+
+private:
     QString itemFileName;
     QString itemFileSize;
-    QString itemFileMtime;
-private:
+    QString itemFileMTime;
     Ui::FileDirectoryListItem *ui;
 };
 

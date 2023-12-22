@@ -98,13 +98,12 @@ void ImageBrowser::on_sftpClientListFileResponse(QStringList filenames)
         ui->listWidget_FileList->addItem(newItem);
         ui->listWidget_FileList->setItemWidget(newItem, newFileDirItem);
     }
-
 }
 
 void ImageBrowser::onFileItemClicked(QListWidgetItem* item)
 {
     FileDirectoryListItem *widgetItem = static_cast<FileDirectoryListItem *>(ui->listWidget_FileList->itemWidget(item));
-    ui->lineEditFilePath->setText(widgetItem->itemFileName);
+    ui->lineEditFilePath->setText(widgetItem->getFileName());
 
 }
 

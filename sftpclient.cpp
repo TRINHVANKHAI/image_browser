@@ -287,13 +287,13 @@ int SftpClient::fileDownLoadSync(QString fileName, QString localDir)
       return SSH_ERROR;
   }
 
-  downloadedFile = fopen(localFilePath.toLocal8Bit().data(), "w");
+  downloadedFile = fopen(localFilePath.toLocal8Bit().data(), "wb");
   if (downloadedFile == NULL) {
       fprintf(stderr, "Can't open file for writing: %s\n",
               strerror(errno));
       return SSH_ERROR;
   }
-
+  nwritten=0;
   for (;;) {
       nbytes = sftp_read(file, buffer, sizeof(buffer));
       if (nbytes == 0) {
@@ -303,11 +303,13 @@ int SftpClient::fileDownLoadSync(QString fileName, QString localDir)
                   ssh_get_error(ssh_client_session));
           sftp_close(file);
           return SSH_ERROR;
+      } else {
+          fwrite(buffer, 1, nbytes, downloadedFile);
+          nwritten += nbytes;
       }
-
-      fwrite(buffer, nbytes, 1, downloadedFile);
   }
 
+  qDebug() << "File size written: " << nwritten;
   fclose(downloadedFile);
   rc = sftp_close(file);
 

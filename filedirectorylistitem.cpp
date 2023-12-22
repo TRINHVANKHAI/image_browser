@@ -11,7 +11,7 @@ FileDirectoryListItem::FileDirectoryListItem(QString filename, QString size, QSt
 
     itemFileName = filename;
     itemFileSize = size;
-    itemFileMtime = mtime;
+    itemFileMTime = mtime;
     ui->labelFileDirName->setText(filename);
     ui->labelFileDirSize->setText(size);
     ui->labelFileDirTimeStamp->setText(mtime);
@@ -30,3 +30,17 @@ FileDirectoryListItem::~FileDirectoryListItem()
     delete ui;
 }
 
+QString FileDirectoryListItem::getFileName()
+{
+    return itemFileName;
+}
+
+QString FileDirectoryListItem::getFileSize()
+{
+    return itemFileSize;
+}
+
+QString FileDirectoryListItem::getFileMTime()
+{
+    return itemFileMTime;
+}
