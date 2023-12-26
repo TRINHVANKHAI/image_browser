@@ -2,6 +2,7 @@
 #include "ui_filedirectorylistitem.h"
 #include <QDebug>
 #include <QDateTime>
+#include <QIcon>
 
 FileDirectoryListItem::FileDirectoryListItem(QString filename, QString size, QString mtime, QWidget *parent) :
     QWidget(parent),
@@ -15,6 +16,16 @@ FileDirectoryListItem::FileDirectoryListItem(QString filename, QString size, QSt
     ui->labelFileDirName->setText(filename);
     ui->labelFileDirSize->setText(size);
     ui->labelFileDirTimeStamp->setText(mtime);
+    if(filename.endsWith(".csv")) {
+        QIcon csvIcon(":/images/images/text.png");
+        QPixmap csvPixmap = csvIcon.pixmap(QSize(16, 16));
+        ui->labelFileDirIcon->setPixmap(csvPixmap);
+    }
+    if(filename.endsWith(".yuv")) {
+        QIcon yuvIcon(":/images/images/image.png");
+        QPixmap yuvPixmap = yuvIcon.pixmap(QSize(16, 16));
+        ui->labelFileDirIcon->setPixmap(yuvPixmap);
+    }
 }
 
 FileDirectoryListItem::FileDirectoryListItem(QWidget *parent) :
@@ -23,6 +34,9 @@ FileDirectoryListItem::FileDirectoryListItem(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->labelFileDirIcon->setText("");
+    ui->labelFileDirName->setText("Name");
+    ui->labelFileDirSize->setText("Size");
+    ui->labelFileDirTimeStamp->setText("Changed");
 }
 
 FileDirectoryListItem::~FileDirectoryListItem()
