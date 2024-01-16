@@ -21,10 +21,16 @@ FileDirectoryListItem::FileDirectoryListItem(QString filename, QString size, QSt
         QPixmap csvPixmap = csvIcon.pixmap(QSize(16, 16));
         ui->labelFileDirIcon->setPixmap(csvPixmap);
     }
-    if(filename.endsWith(".yuv")) {
+    else if(filename.endsWith(".yuv") ||
+            filename.endsWith(".raw") ||
+            filename.endsWith(".dat")
+            ) {
         QIcon yuvIcon(":/images/images/image.png");
         QPixmap yuvPixmap = yuvIcon.pixmap(QSize(16, 16));
         ui->labelFileDirIcon->setPixmap(yuvPixmap);
+    }
+    else {
+        ui->labelFileDirIcon->setText("");
     }
 }
 
